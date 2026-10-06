@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1620" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="1620" fill="#ffffff"/>
+
+  <!-- ============ TÍTULO ============ -->
+  <text x="40" y="46" font-size="26" font-weight="700" fill="#0f172a">Reservas de stock — modelo de estados y almacenamiento</text>
+  <line x1="40" y1="62" x2="920" y2="62" stroke="#e2e8f0" stroke-width="2"/>
+
+  <!-- ============ PANEL 1: MÁQUINA DE ESTADOS ============ -->
+  <text x="40" y="100" font-size="18" font-weight="700" fill="#1e293b">1 · Ciclo de vida de una reserva</text>
+
+  <!-- nueva -->
+  <text x="70" y="178" font-size="13" fill="#64748b">POST /reservations</text>
+  <text x="70" y="196" font-size="13" fill="#64748b">(hay stock)</text>
+
+  <!-- ACTIVE -->
+  <rect x="250" y="150" width="170" height="70" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="335" y="183" font-size="19" font-weight="700" fill="#1d4ed8" text-anchor="middle">ACTIVE</text>
+  <text x="335" y="205" font-size="12" fill="#3b82f6" text-anchor="middle">persistido · resta del stock</text>
+
+  <!-- arrow nueva -> ACTIVE -->
+  <line x1="190" y1="185" x2="248" y2="185" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- CONFIRMED -->
+  <rect x="580" y="90" width="200" height="74" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="2.5"/>
+  <text x="680" y="123" font-size="19" font-weight="700" fill="#047857" text-anchor="middle">CONFIRMED</text>
+  <text x="680" y="145" font-size="12" fill="#10b981" text-anchor="middle">persistido · terminal · vendida</text>
+
+  <!-- EXPIRED -->
+  <rect x="580" y="210" width="200" height="74" rx="12" fill="#fffbeb" stroke="#d97706" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <text x="680" y="243" font-size="19" font-weight="700" fill="#b45309" text-anchor="middle">EXPIRED</text>
+  <text x="680" y="265" font-size="12" fill="#f59e0b" text-anchor="middle">derivado (no persistido)</text>
+
+  <!-- ACTIVE -> CONFIRMED -->
+  <path d="M420,172 C490,150 510,135 578,128" fill="none" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="455" y="132" font-size="13" font-weight="600" fill="#047857">confirm</text>
+
+  <!-- ACTIVE -> EXPIRED -->
+  <path d="M420,198 C490,220 510,235 578,242" fill="none" stroke="#d97706" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="432" y="246" font-size="13" font-weight="600" fill="#b45309">now ≥ expires_at</text>
+
+  <!-- confirm idempotente loop -->
+  <path d="M700,86 C720,56 760,60 762,96 C763,118 742,126 720,124" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="792" y="78" font-size="11.5" fill="#047857">confirm</text>
+  <text x="792" y="93" font-size="11.5" fill="#047857">repetido → 200</text>
+
+  <!-- notas estados -->
+  <rect x="250" y="300" width="530" height="86" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="268" y="326" font-size="13" fill="#334155"><tspan font-weight="700">ACTIVE</tspan>  → confirmar (200) · vencer (derivado) · reintento idempotente devuelve la misma</text>
+  <text x="268" y="348" font-size="13" fill="#334155"><tspan font-weight="700">CONFIRMED</tspan>  → terminal; nunca vence; confirmar de nuevo = 200 sin re-descontar</text>
+  <text x="268" y="370" font-size="13" fill="#334155"><tspan font-weight="700">EXPIRED</tspan>  → no se puede confirmar (409); sus unidades vuelven a estar disponibles</text>
+
+  <line x1="40" y1="420" x2="920" y2="420" stroke="#e2e8f0" stroke-width="2"/>
+
+  <!-- ============ PANEL 2: ALMACENAMIENTO EN MEMORIA ============ -->
+  <text x="40" y="458" font-size="18" font-weight="700" fill="#1e293b">2 · Almacenamiento en memoria: tres diccionarios</text>
+
+  <!-- _totals -->
+  <rect x="40" y="480" width="270" height="150" rx="12" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+  <text x="58" y="508" font-size="15" font-weight="700" fill="#0f172a">_totals</text>
+  <text x="58" y="528" font-size="11.5" fill="#64748b">(store, product) → total físico</text>
+  <text x="58" y="529" font-size="11.5" fill="#64748b"></text>
+  <rect x="58" y="540" width="234" height="72" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="72" y="562" font-size="12.5" font-family="monospace" fill="#334155">("store-1","product-1"): 10</text>
+  <text x="72" y="584" font-size="12.5" font-family="monospace" fill="#334155">("store-2","product-1"): 5</text>
+  <text x="72" y="604" font-size="11" fill="#94a3b8">fijo (seed) · NO es el disponible</text>
+
+  <!-- _reservations -->
+  <rect x="345" y="480" width="315" height="150" rx="12" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+  <text x="363" y="508" font-size="15" font-weight="700" fill="#0f172a">_reservations</text>
+  <text x="363" y="528" font-size="11.5" fill="#64748b">id → Reservation (con estado)</text>
+  <rect x="363" y="540" width="279" height="72" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="377" y="561" font-size="11.5" font-family="monospace" fill="#334155">"0d53…": {qty:3, status:CONFIRMED,</text>
+  <text x="377" y="577" font-size="11.5" font-family="monospace" fill="#334155">          expires_at, store, product…}</text>
+  <text x="377" y="599" font-size="11" fill="#94a3b8">status persistido = ACTIVE | CONFIRMED</text>
+
+  <!-- _idempotency -->
+  <rect x="695" y="480" width="225" height="150" rx="12" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+  <text x="713" y="508" font-size="15" font-weight="700" fill="#0f172a">_idempotency</text>
+  <text x="713" y="528" font-size="11.5" fill="#64748b">key → reservation_id</text>
+  <rect x="713" y="540" width="189" height="72" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="727" y="568" font-size="11.5" font-family="monospace" fill="#334155">"checkout-abc":</text>
+  <text x="727" y="586" font-size="11.5" font-family="monospace" fill="#334155">        "0d53…"</text>
+  <text x="727" y="604" font-size="11" fill="#94a3b8">detecta reintentos</text>
+
+  <!-- lock note -->
+  <rect x="40" y="648" width="880" height="44" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="60" y="675" font-size="13.5" fill="#991b1b">🔒 <tspan font-weight="700">threading.Lock global</tspan> — toda operación (leer/crear/confirmar) corre dentro de <tspan font-family="monospace">with self._lock:</tspan> → nunca hay sobreventa.</text>
+
+  <!-- ============ PANEL 3: DISPONIBLE DERIVADO ============ -->
+  <text x="40" y="738" font-size="18" font-weight="700" fill="#1e293b">3 · El "disponible" se calcula, no se guarda</text>
+
+  <rect x="40" y="758" width="880" height="86" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="480" y="795" font-size="17" font-weight="700" font-family="monospace" fill="#1d4ed8" text-anchor="middle">disponible = total − Σ(ACTIVE no vencidas) − Σ(CONFIRMED)</text>
+  <text x="480" y="822" font-size="13" fill="#3b82f6" text-anchor="middle">las EXPIRED no se restan → sus unidades "vuelven" solas (vencimiento perezoso, sin job en background)</text>
+
+  <!-- aporte de cada estado -->
+  <rect x="40" y="868" width="280" height="64" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="180" y="896" font-size="14" font-weight="700" fill="#1d4ed8" text-anchor="middle">ACTIVE</text>
+  <text x="180" y="918" font-size="13" fill="#3b82f6" text-anchor="middle">resta (retenida)</text>
+
+  <rect x="340" y="868" width="280" height="64" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="480" y="896" font-size="14" font-weight="700" fill="#047857" text-anchor="middle">CONFIRMED</text>
+  <text x="480" y="918" font-size="13" fill="#10b981" text-anchor="middle">resta (vendida)</text>
+
+  <rect x="640" y="868" width="280" height="64" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="780" y="896" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle">EXPIRED</text>
+  <text x="780" y="918" font-size="13" fill="#f59e0b" text-anchor="middle">NO resta (liberada)</text>
+
+  <!-- ejemplo -->
+  <text x="40" y="978" font-size="15" font-weight="700" fill="#1e293b">Ejemplo (escenario D de la demo): stock fresco de 10, una reserva de 3 confirmada</text>
+  <rect x="40" y="996" width="880" height="120" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="62" y="1028" font-size="13" font-family="monospace" fill="#334155">_totals[("store-1","product-1")]          = 10</text>
+  <text x="62" y="1052" font-size="13" font-family="monospace" fill="#334155">_reservations = { "0d53…": qty 3, CONFIRMED }</text>
+  <text x="62" y="1086" font-size="14" font-family="monospace" font-weight="700" fill="#1d4ed8">disponible = 10 − 0 (activas) − 3 (confirmadas) = 7</text>
+  <text x="62" y="1106" font-size="12" fill="#94a3b8">el "7" no está guardado en ningún lado: se re-deriva en cada consulta</text>
+
+  <line x1="40" y1="1150" x2="920" y2="1150" stroke="#e2e8f0" stroke-width="2"/>
+
+  <!-- ============ PANEL 4: FLUJO DE IDEMPOTENCIA ============ -->
+  <text x="40" y="1188" font-size="18" font-weight="700" fill="#1e293b">4 · Flujo de idempotencia al crear una reserva</text>
+
+  <!-- entrada -->
+  <rect x="40" y="1216" width="180" height="54" rx="10" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+  <text x="130" y="1240" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">POST /reservations</text>
+  <text x="130" y="1258" font-size="11.5" font-family="monospace" fill="#64748b" text-anchor="middle">idempotency_key</text>
+
+  <!-- Decisión 1: ¿la key ya existe? -->
+  <path d="M288,1243 L360,1201 L432,1243 L360,1285 Z" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="360" y="1239" font-size="12.5" font-weight="700" fill="#4338ca" text-anchor="middle">¿la key</text>
+  <text x="360" y="1255" font-size="12.5" font-weight="700" fill="#4338ca" text-anchor="middle">ya existe?</text>
+  <line x1="220" y1="1243" x2="286" y2="1243" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- D1 SÍ -> Decisión 2 (¿mismos datos?) -->
+  <line x1="432" y1="1243" x2="604" y2="1243" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="470" y="1233" font-size="12" font-weight="700" fill="#4338ca">SÍ (ya usada)</text>
+
+  <path d="M606,1243 L680,1201 L754,1243 L680,1285 Z" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="680" y="1239" font-size="12" font-weight="700" fill="#4338ca" text-anchor="middle">¿mismos</text>
+  <text x="680" y="1255" font-size="12" font-weight="700" fill="#4338ca" text-anchor="middle">datos?</text>
+
+  <!-- D2 SÍ -> 200 misma reserva -->
+  <line x1="680" y1="1285" x2="680" y2="1330" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="690" y="1312" font-size="12" font-weight="700" fill="#047857">SÍ</text>
+  <rect x="560" y="1332" width="240" height="62" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <text x="680" y="1358" font-size="13.5" font-weight="700" fill="#047857" text-anchor="middle">200 · misma reserva</text>
+  <text x="680" y="1378" font-size="11.5" fill="#10b981" text-anchor="middle">sin volver a descontar</text>
+
+  <!-- D2 NO -> 409 conflict -->
+  <path d="M754,1243 L860,1243 L860,1418" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="770" y="1235" font-size="12" font-weight="700" fill="#b91c1c">NO (datos distintos)</text>
+  <rect x="600" y="1420" width="320" height="58" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="760" y="1444" font-size="13.5" font-weight="700" fill="#991b1b" text-anchor="middle">409 idempotency_conflict</text>
+  <text x="760" y="1463" font-size="11.5" fill="#ef4444" text-anchor="middle">la key no se reutiliza para otra reserva</text>
+
+  <!-- D1 NO -> Decisión 3 (¿hay stock?) -->
+  <line x1="360" y1="1285" x2="360" y2="1343" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="370" y="1320" font-size="12" font-weight="700" fill="#64748b">NO (key nueva)</text>
+
+  <path d="M290,1385 L360,1345 L430,1385 L360,1425 Z" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="360" y="1390" font-size="12.5" font-weight="700" fill="#1d4ed8" text-anchor="middle">¿hay stock?</text>
+
+  <!-- D3 SÍ -> 201 crea reserva (a la izquierda) -->
+  <line x1="290" y1="1385" x2="284" y2="1385" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="212" y="1375" font-size="12" font-weight="700" fill="#047857">SÍ</text>
+  <rect x="40" y="1354" width="244" height="62" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <text x="162" y="1380" font-size="13" font-weight="700" fill="#047857" text-anchor="middle">201 · crea reserva ACTIVE</text>
+  <text x="162" y="1399" font-size="11" fill="#10b981" text-anchor="middle">descuenta stock · guarda key → id</text>
+
+  <!-- D3 NO -> 409 insufficient -->
+  <line x1="360" y1="1425" x2="360" y2="1486" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="370" y="1462" font-size="12" font-weight="700" fill="#b91c1c">NO</text>
+  <rect x="235" y="1488" width="250" height="58" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="360" y="1512" font-size="13" font-weight="700" fill="#991b1b" text-anchor="middle">409 insufficient_stock</text>
+  <text x="360" y="1531" font-size="11" fill="#ef4444" text-anchor="middle">no toca inventario · NO guarda la key</text>
+</svg>
